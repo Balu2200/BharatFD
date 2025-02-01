@@ -16,6 +16,7 @@ userRouter.post("/faqs", async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
+    
     const translatedQuestion = await translateText(question, lang);
     const translatedAnswer = await translateText(answer, lang);
 
@@ -26,7 +27,6 @@ userRouter.post("/faqs", async (req, res) => {
     });
 
     await faq.save();
-
     await redisClient.del(`faqs:${lang}`);
 
     res.status(201).json({ message: "FAQ added successfully", faq });
@@ -40,21 +40,30 @@ userRouter.post("/faqs", async (req, res) => {
 userRouter.get("/faqs", cacheMiddleware, async (req, res) => {
   try {
     const lang = req.query.lang || "en";
+    const cacheKey = `faqs:${lang}`;
+
+   
+    const cachedFAQs = await redisClient.get(cacheKey);
+    if (cachedFAQs) {
+      return res.json(JSON.parse(cachedFAQs)); 
+    }
+
     const faqs = await FAQ.find();
 
+   
     const faqsWithTranslations = faqs.map((faq) => ({
-      question: faq.translations?.[lang] || faq.question,
+      question: faq.question, 
       answer: faq.answer,
     }));
 
-    const cacheKey = `faqs:${lang}`;
+    
     await redisClient.setEx(
       cacheKey,
       3600,
       JSON.stringify(faqsWithTranslations)
     );
+
     res.json(faqsWithTranslations);
-    
   } catch (error) {
     res
       .status(500)
