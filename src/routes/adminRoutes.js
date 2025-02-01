@@ -2,8 +2,8 @@ const express = require("express");
 const FAQ = require("../models/postModel");
 const { adminMiddleware } = require("../middlewares/checkadmin");
 const { translateText } = require("../utils/translate");
-const redisMiddleware = require("../middlewares/redisMiddleware"); // Import your Redis middleware
-const client = require("../configure/redisClient"); // Import your Redis client
+const redisMiddleware = require("../middlewares/redisMiddleware"); 
+const client = require("../configure/redisClient"); 
 
 const adminRouter = express.Router();
 
