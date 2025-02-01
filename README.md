@@ -96,6 +96,7 @@ To enhance application performance, Redis is utilized to cache frequently access
                 - Port
                 - Username
                 - Password
+    - create a middleware cacheMiddleware for fetching FAQs fastly  from Redis . If cache not found then store the caching with FAQs to retrive the information next quickly
 
 
 - Role-Based Access Control (RBAC) Integration
@@ -175,6 +176,60 @@ FAQs can be managed in multiple languages. The system allows for translations of
                 - const { Translate } = require("@google-cloud/translate").v2;
                 - Provide your API key in .env file 
                     -const translate = new Translate({key: process.env.GOOGLE_TRANSLATE_API_KEY});
+
+- Unit Testing with Jest
+
+Here are the steps for unit testing using Jest, including libraries and a small example :
+
+
+  - Install Jest, Supertest, Mongoose, and Mockingoose: Install dependencies for testing:
+
+      - npm install --save-dev jest supertest mongoose mockingoose
+
+  - Set up Jest configuration: Add a script in package.json to run tests:
+
+        "scripts":  {
+                    "test": "jest"
+                    }
+  - Write Model Tests: Create a test file faqModel.test.js and test the model methods:
+     
+        - Example :
+
+                -const FAQ = require("./faqModel");
+                describe("FAQ Model", () => {
+                    it("should return the correct translation", () => {
+                        const faq = new FAQ({ question: "What is Node?", translations: { en: "What is Node?", es: "¿Qué es Node?" } });
+                        expect(faq.getTranslation("es")).toBe("¿Qué es Node?");
+                    });
+                });
+
+   - Write API Tests: Use Supertest to test the API endpoints, e.g., POST /faqs:
+
+        - Example :
+
+                - const request = require("supertest");
+                  const app = require("./app");
+
+                  describe("Admin API", () => {
+                  it("should create a new FAQ", async () => {
+                        const res = await request(app)
+                        .post("/admin/faqs")
+                        .send({ question: "What is Node?", answer: "Node.js is a JavaScript runtime." })
+                        .query({ lang: "en" });
+                        expect(res.status).toBe(201);
+                    });
+                });
+    - Mock Mongoose Models: Use mockingoose to mock Mongoose methods:
+
+        - const mockingoose = require("mockingoose");
+            mockingoose(FAQ).toReturn({ question: "What is Node?" }, "findOne");   
+    - Run Tests: Run the tests using the command:
+
+        - npm run test
+
+These steps summarize how to set up and perform unit testing with Jest in the project, using mock data for models and testing your API endpoints with Supertest. 
+
+
                     
                   
 
