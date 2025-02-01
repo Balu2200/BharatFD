@@ -3,6 +3,8 @@ const FAQ = require("../models/postModel");
 const userRouter = express.Router();
 const { translateText } = require("../utils/translate");
 
+
+
 userRouter.post("/faqs", async (req, res) => {
   try {
     const { question, answer } = req.body;
@@ -35,6 +37,8 @@ userRouter.post("/faqs", async (req, res) => {
       .json({ message: "Error creating FAQ", error: error.message });
   }
 });
+
+
 
 userRouter.get("/faqs", async (req, res) => {
   try {

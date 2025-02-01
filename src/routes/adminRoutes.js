@@ -5,6 +5,7 @@ const { translateText } = require("../utils/translate");
 
 const adminRouter = express.Router();
 
+
 adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
   try {
     const { question, answer } = req.body;
@@ -33,6 +34,8 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+
 
 adminRouter.get("/faqs", async (req, res) => {
   try {
