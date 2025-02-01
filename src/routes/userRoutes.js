@@ -5,6 +5,7 @@ const { translateText } = require("../utils/translate");
 const cacheMiddleware = require("../middlewares/cacheMiddleware");
 const redisClient = require("../configure/redisClient");
 
+
 userRouter.post("/faqs", async (req, res) => {
   try {
     const { question, answer } = req.body;
@@ -42,7 +43,6 @@ userRouter.get("/faqs", cacheMiddleware, async (req, res) => {
     const lang = req.query.lang || "en";
     const cacheKey = `faqs:${lang}`;
 
-   
     const cachedFAQs = await redisClient.get(cacheKey);
     if (cachedFAQs) {
       return res.json(JSON.parse(cachedFAQs)); 
@@ -50,16 +50,16 @@ userRouter.get("/faqs", cacheMiddleware, async (req, res) => {
 
     const faqs = await FAQ.find();
 
-   
-    const faqsWithTranslations = faqs.map((faq) => ({
-      question: faq.question, 
-      answer: faq.answer,
-    }));
+    const faqsWithTranslations = await Promise.all(
+      faqs.map(async (faq) => ({
+        question: await translateText(faq.question, lang),
+        answer: await translateText(faq.answer, lang),
+      }))
+    );
 
-    
     await redisClient.setEx(
       cacheKey,
-      3600,
+      3600, 
       JSON.stringify(faqsWithTranslations)
     );
 

@@ -14,8 +14,12 @@ const postSchema = new mongoose.Schema(
 
 
 postSchema.methods.getTranslation = function (lang) {
-  return this.translations[`${lang}`] || this.question;
+  if (this.translations && this.translations[lang]) {
+    return this.translations[lang];
+  }
+  return this.question; 
 };
+
 
 const FAQ = mongoose.model("FAQ", postSchema);
 module.exports = FAQ;
