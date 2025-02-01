@@ -2,8 +2,8 @@ const express = require("express");
 const FAQ = require("../models/postModel");
 const userRouter = express.Router();
 const { translateText } = require("../utils/translate");
-
-
+const cacheMiddleware = require("../middlewares/cacheMiddleware");
+const redisClient = require("../configure/redisClient");
 
 userRouter.post("/faqs", async (req, res) => {
   try {
@@ -16,20 +16,19 @@ userRouter.post("/faqs", async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
-    const languages = ["fr", "es", "de", "hi", lang];
-    const translations = {};
-
-    for (const language of languages) {
-      translations[language] = await translateText(question, language);
-    }
+    const translatedQuestion = await translateText(question, lang);
+    const translatedAnswer = await translateText(answer, lang);
 
     const faq = new FAQ({
-      question,
-      answer,
-      translations,
+      question: translatedQuestion,
+      answer: translatedAnswer,
+      language: lang,
     });
 
     await faq.save();
+
+    await redisClient.del(`faqs:${lang}`);
+
     res.status(201).json({ message: "FAQ added successfully", faq });
   } catch (error) {
     res
@@ -38,19 +37,24 @@ userRouter.post("/faqs", async (req, res) => {
   }
 });
 
-
-
-userRouter.get("/faqs", async (req, res) => {
+userRouter.get("/faqs", cacheMiddleware, async (req, res) => {
   try {
     const lang = req.query.lang || "en";
     const faqs = await FAQ.find();
 
     const faqsWithTranslations = faqs.map((faq) => ({
-      question: faq.translations[lang] || faq.question,
+      question: faq.translations?.[lang] || faq.question,
       answer: faq.answer,
     }));
 
+    const cacheKey = `faqs:${lang}`;
+    await redisClient.setEx(
+      cacheKey,
+      3600,
+      JSON.stringify(faqsWithTranslations)
+    );
     res.json(faqsWithTranslations);
+    
   } catch (error) {
     res
       .status(500)
