@@ -12,7 +12,54 @@
 
 ## Installation
 
+Here's the step-by-step setup for the Express backend with the required libraries and corresponding npm commands:
 
+    -Initialize a new Node.js project
+        - npm init 
+
+    -Install Express for creating the server
+        - npm install express
+
+    -Install Mongoose for MongoDB integration
+        - npm install mongoose
+
+    - Install CORS to enable cross-origin requests
+        - npm install cors
+
+    -Install body-parser to parse incoming request bodies
+        - npm install body-parser
+
+    -Install AdminBro for admin panel
+        - npm install admin-bro
+
+    -Install AdminBro Express Adapter for integrating AdminBro with Express
+        - npm install @admin-bro/express
+
+    -Install googletrans library for multilingual support
+        - npm install googletrans
+
+    -Install Redis and ioredis for caching FAQs
+        - npm install redis ioredis
+
+    -Install dotenv for managing environment variables
+        - npm install dotenv
+
+    -Install ckeditor and admin-bro-ckeditor for integrating a WYSIWYG editor in the admin panel
+        - npm install @ckeditor/ckeditor5-build-classic admin-bro-ckeditor
+
+    -Install passport and bcryptjs for authentication and role-based access management
+        - npm install passport bcryptjs
+
+    -Install JSON Web Token (JWT) for handling user authentication and authorization
+        - npm install jsonwebtoken
+
+    -Install jest or mocha for unit testing
+        - npm install jest 
+
+    -Install nodemon for auto-restarting the server during development
+        - npm install --save-dev nodemon
+
+Create a .env file to store sensitive configurations like DB URL, JWT secret, etc
 
 ## Features
 
@@ -28,16 +75,16 @@
 
 Integrating a WYSIWYG (What You See Is What You Get) editor enhances the user experience by allowing users to format FAQ answers with rich text. This integration improves readability and presentation, making the content more engaging and accessible.
 
-    - Installation and Integration Steps:
+- Installation and Integration Steps:
             
-            -For this implementation, we will use Quill.js, a free, open-source WYSIWYG editor built for the modern web.
-            -If you're using npm, install Quill.js by running
-                    - npm install quill
-            -Then, import Quill.js into your JavaScript file:
-                    - import Quill from 'quill'
-        
-            - Integrate with Backend:
-                    - When submitting the form, send the editor's content to your backend (e.g., Express.js) via an API endpoint.   Ensure that your backend is configured to handle HTML content appropriately.
+    -For this implementation, we will use Quill.js, a free, open-source WYSIWYG editor built for the modern web.
+    -If you're using npm, install Quill.js by running
+            - npm install quill
+    -Then, import Quill.js into your JavaScript file:
+            - import Quill from 'quill'
+
+    - Integrate with Backend:
+            - When submitting the form, send the editor's content to your backend (e.g., Express.js) via an API endpoint.   Ensure that your backend is configured to handle HTML content appropriately.
 
 - Redis Caching
 
