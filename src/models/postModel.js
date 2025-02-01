@@ -12,6 +12,7 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
 postSchema.methods.getTranslation = function (lang) {
   return this.translations[`${lang}`] || this.question;
 };
