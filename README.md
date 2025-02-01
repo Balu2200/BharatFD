@@ -25,18 +25,12 @@ Here's the step-by-step setup for the Express backend with the required librarie
 
     - Install CORS to enable cross-origin requests
         - npm install cors
-
-    -Install body-parser to parse incoming request bodies
-        - npm install body-parser
-
-    -Install AdminBro for admin panel
-        - npm install admin-bro
-
-    -Install AdminBro Express Adapter for integrating AdminBro with Express
-        - npm install @admin-bro/express
+    
+    - Install cookie-parser for cookies parsing 
+        - npm install cookie-parser
 
     -Install googletrans library for multilingual support
-        - npm install googletrans
+        - npm install @google-cloud/translate
 
     -Install Redis and ioredis for caching FAQs
         - npm install redis ioredis
@@ -44,10 +38,7 @@ Here's the step-by-step setup for the Express backend with the required librarie
     -Install dotenv for managing environment variables
         - npm install dotenv
 
-    -Install ckeditor and admin-bro-ckeditor for integrating a WYSIWYG editor in the admin panel
-        - npm install @ckeditor/ckeditor5-build-classic admin-bro-ckeditor
-
-    -Install passport and bcryptjs for authentication and role-based access management
+    -Install bcrypt for bcryption of the passwords
         - npm install passport bcryptjs
 
     -Install JSON Web Token (JWT) for handling user authentication and authorization
@@ -55,9 +46,6 @@ Here's the step-by-step setup for the Express backend with the required librarie
 
     -Install jest or mocha for unit testing
         - npm install jest 
-
-    -Install nodemon for auto-restarting the server during development
-        - npm install --save-dev nodemon
 
 Create a .env file to store sensitive configurations like DB URL, JWT secret, etc
 
@@ -170,7 +158,6 @@ To enhance application performance, Redis is utilized to cache frequently access
                  - http://localhost:1234/admin/faqs
                  - http://localhost:1234/admin/faqs?lang=hi
                  - http://localhost:1234/user/faqs?lang=hi
-                 - http://localhost:1234/user/faqs
 
 - Multilingual Support
 
@@ -187,9 +174,7 @@ FAQs can be managed in multiple languages. The system allows for translations of
                 
                 - const { Translate } = require("@google-cloud/translate").v2;
                 - Provide your API key in .env file 
-                    -const translate = new Translate({
-                                                        key: process.env.GOOGLE_TRANSLATE_API_KEY,
-                                                    });
+                    -const translate = new Translate({key: process.env.GOOGLE_TRANSLATE_API_KEY});
                     
                   
 
