@@ -16,7 +16,6 @@ userRouter.post("/faqs", async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
-    
     const translatedQuestion = await translateText(question, lang);
     const translatedAnswer = await translateText(answer, lang);
 
@@ -36,6 +35,7 @@ userRouter.post("/faqs", async (req, res) => {
       .json({ message: "Error creating FAQ", error: error.message });
   }
 });
+
 
 userRouter.get("/faqs", cacheMiddleware, async (req, res) => {
   try {

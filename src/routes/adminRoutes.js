@@ -2,7 +2,7 @@ const express = require("express");
 const FAQ = require("../models/postModel");
 const { adminMiddleware } = require("../middlewares/checkadmin");
 const { translateText } = require("../utils/translate");
-const redisMiddleware = require("../middlewares/redisMiddleware"); 
+const redisMiddleware = require("../middlewares/cacheMiddleware"); 
 const client = require("../configure/redisClient"); 
 
 const adminRouter = express.Router();
@@ -103,6 +103,7 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
 });
 
 
+
 adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {
   try {
     const deletedFAQ = await FAQ.findByIdAndDelete(req.params.id);
@@ -111,13 +112,27 @@ adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {
       return res.status(404).json({ message: "FAQ not found" });
     }
 
-   
     const redisKey = `faq:${deletedFAQ._id}`;
-    await client.del(redisKey);
+
+    client.del(redisKey, (err, response) => {
+      if (err) {
+        console.error("Error deleting from Redis:", err);
+        return res.status(500).json({ message: "Error deleting from Redis" });
+      }
+
+      if (response === 1) {
+        console.log("Deleted FAQ from Redis");
+      } else {
+        console.log("No FAQ found in Redis to delete");
+      }
+    });
 
     res.json({ message: "FAQ deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in deleting FAQ:", error);
+    res
+      .status(500)
+      .json({ message: "Error deleting FAQ", error: error.message });
   }
 });
 

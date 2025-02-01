@@ -23,7 +23,7 @@ const adminRouter = require("./routes/adminRoutes");
 const { adminMiddleware } = require("./middlewares/checkadmin");
 
 app.use("/", authRouter);
-app.use("/", userRouter);
+app.use("/user", userRouter);
 app.use("/admin", adminMiddleware, adminRouter);
 
 const port = process.env.SERVER_PORT || 3000;
