@@ -124,13 +124,46 @@ To enhance application performance, Redis is utilized to cache frequently access
 
         - Authorization middleware is implemented to check the user's role before granting access to specific API routes. This middleware verifies the role of the authenticated user and ensures that their permissions align with the requested operation, such as updating or deleting FAQs. This prevents unauthorized actions and enforces secure role-based access control across the application.
 
-                 - AdminRoutes
+
+                -Admin's Capabilities:
+
+                    - Post FAQs:
+                        - The admin can add a new FAQ (question and answer) in the desired language. When posting a question, the admin  can specify the language in which they want to add the FAQ.
+                        - The question and answer will be translated into the selected language before saving to the database.
+
+                    - Get FAQs:
+                        - The admin can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests.
+
+                    - Delete FAQs:
+                       - The admin can delete an FAQ by specifying the FAQ ID. Once deleted, the corresponding cached FAQ (if it exists) will also be removed from Redis.
+
+                - How it Works:
+
+                    - Post FAQs (POST /faqs):
+                        - Admin posts a question and answer along with the language.
+                        - The question and answer are translated into the specified language.
+                        - The FAQ is saved to the database with the translated content and language.
+
+                    - Get FAQs (GET /faqs):
+                       - Admin or users can view the FAQs in the language of their choice.
+                       - The system checks Redis for cached FAQs for the selected language. If not found, it fetches the FAQs from the database and translates them.
+
+                    - Delete FAQs (DELETE /faqs/:id):
+                        - Admin deletes an FAQ by ID.
+                        - The FAQ is removed from the database and its corresponding cache in Redis is deleted.
+
+                - User's Capabilities :
+
+                    - Get FAQs:
+                        - The user can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests.
+                     
+
+                - AdminRoutes
                     - adminRouter.post("/faqs", adminMiddleware, async (req, res) => {})
                     - adminRouter.get("/faqs", redisMiddleware, async (req, res) => {})
                     - adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {})
                     - adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {})
                 - UserRoutes
-                    - userRouter.post("/faqs", async (req, res) => {})
                     - userRouter.get("/faqs", cacheMiddleware, async (req, res) => {})
 
 
