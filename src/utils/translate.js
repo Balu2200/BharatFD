@@ -30,3 +30,4 @@ async function translateText(text, targetLanguage) {
   }
 }
 
+module.exports = { translateText };

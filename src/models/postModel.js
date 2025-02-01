@@ -6,12 +6,14 @@ const postSchema = new mongoose.Schema(
     answer: { type: String, required: true },
     translations: {
       type: Map,
-      of: String,
+      of: {
+        question: String,
+        answer: String,
+      },
     },
   },
   { timestamps: true }
 );
-
 
 postSchema.methods.getTranslation = function (lang) {
   if (this.translations && this.translations[lang]) {

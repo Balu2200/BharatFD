@@ -19,6 +19,7 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
+
     let faq = await FAQ.findOne({ question });
 
     let translatedQuestion = question;
@@ -30,7 +31,6 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
     }
 
     if (!faq) {
-      
       faq = new FAQ({
         question,
         answer,
@@ -42,10 +42,16 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
         },
       });
     } else {
-      faq.translations.set(language, {
-        question: translatedQuestion,
-        answer: translatedAnswer,
-      });
+      if (!faq.translations.has(language)) {
+        faq.translations.set(language, {
+          question: translatedQuestion,
+          answer: translatedAnswer,
+        });
+      } else {
+        return res
+          .status(400)
+          .json({ message: `Translation for ${language} already exists` });
+      }
     }
 
     await faq.save();
@@ -56,6 +62,7 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 
@@ -126,7 +133,6 @@ adminRouter.get("/faqs", redisMiddleware, async (req, res) => {
 adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
   try {
     const { question, answer } = req.body;
-    const language = req.query.language || "en";
 
     if (!question || !answer) {
       return res
@@ -134,26 +140,29 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
-    
     const faq = await FAQ.findById(req.params.id);
     if (!faq) {
       return res.status(404).json({ message: "FAQ not found" });
     }
 
-    if (language === "en") {
-      faq.question = question;
-      faq.answer = answer;
-    } else {
-      const translatedQuestion = await translateText(question, language);
-      const translatedAnswer = await translateText(answer, language);
-      faq.translations.set(language, {
-        question: translatedQuestion,
-        answer: translatedAnswer,
-      });
+    faq.question = question;
+    faq.answer = answer;
+
+    const allLanguages = ["en", "hi", "bn", "te","ta","ar","kn","pa","ur","ml"]; 
+    for (const lang of allLanguages) {
+      if (lang !== "en") {
+        const translatedQuestion = await translateText(question, lang);
+        const translatedAnswer = await translateText(answer, lang);
+        faq.translations.set(lang, {
+          question: translatedQuestion,
+          answer: translatedAnswer,
+        });
+      }
     }
 
     await faq.save();
 
+    
     const redisKey = `faq:${faq._id}`;
     await client.del(redisKey);
 
@@ -167,6 +176,7 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 
