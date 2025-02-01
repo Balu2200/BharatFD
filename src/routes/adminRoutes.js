@@ -19,53 +19,108 @@ adminRouter.post("/faqs", adminMiddleware, async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
-    const translatedQuestion = await translateText(question, language);
-    const translatedAnswer = await translateText(answer, language);
+    let faq = await FAQ.findOne({ question });
 
-    const newFAQ = new FAQ({
-      question: translatedQuestion,
-      answer: translatedAnswer,
-      language,
-    });
+    let translatedQuestion = question;
+    let translatedAnswer = answer;
 
-    await newFAQ.save();
+    if (language !== "en") {
+      translatedQuestion = await translateText(question, language);
+      translatedAnswer = await translateText(answer, language);
+    }
+
+    if (!faq) {
+      
+      faq = new FAQ({
+        question,
+        answer,
+        translations: {
+          [language]: {
+            question: translatedQuestion,
+            answer: translatedAnswer,
+          },
+        },
+      });
+    } else {
+      faq.translations.set(language, {
+        question: translatedQuestion,
+        answer: translatedAnswer,
+      });
+    }
+
+    await faq.save();
     res
       .status(201)
-      .json({ message: "FAQ added with translation", faq: newFAQ });
+      .json({ message: "FAQ added/updated with translation", faq });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 adminRouter.get("/faqs", redisMiddleware, async (req, res) => {
   try {
     const { lang = "en" } = req.query;
     const redisKey = `faqs:${lang}`;
-    const cachedFAQs = await client.get(redisKey);
 
+    
+    const cachedFAQs = await client.get(redisKey);
     if (cachedFAQs) {
       return res.json(JSON.parse(cachedFAQs));
     }
 
     const faqs = await FAQ.find();
+
     const translatedFAQs = await Promise.all(
-      faqs.map(async (faq) => ({
-        _id: faq._id,
-        question: await translateText(faq.question, lang),
-        answer: await translateText(faq.answer, lang),
-        language: lang,
-      }))
+      faqs.map(async (faq) => {
+        if (lang === "en") {
+          return {
+            _id: faq._id,
+            question: faq.question,
+            answer: faq.answer,
+            language: "en",
+          };
+        }
+
+        const existingTranslation = faq.translations.get(lang);
+        if (existingTranslation) {
+          return {
+            _id: faq._id,
+            question: existingTranslation.question,
+            answer: existingTranslation.answer,
+            language: lang,
+          };
+        }
+
+       
+        const translatedQuestion = await translateText(faq.question, lang);
+        const translatedAnswer = await translateText(faq.answer, lang);
+
+       
+        faq.translations.set(lang, {
+          question: translatedQuestion,
+          answer: translatedAnswer,
+        });
+        await faq.save();
+
+        return {
+          _id: faq._id,
+          question: translatedQuestion,
+          answer: translatedAnswer,
+          language: lang,
+        };
+      })
     );
 
-  
-    await client.set(redisKey, JSON.stringify(translatedFAQs));
+    await client.set(redisKey, JSON.stringify(translatedFAQs), "EX", 3600);
 
     res.json(translatedFAQs);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
@@ -79,24 +134,35 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
         .json({ message: "Question and answer are required" });
     }
 
-    const translatedQuestion = await translateText(question, language);
-    const translatedAnswer = await translateText(answer, language);
-
-    const updatedFAQ = await FAQ.findByIdAndUpdate(
-      req.params.id,
-      { question: translatedQuestion, answer: translatedAnswer, language },
-      { new: true }
-    );
-
-    if (!updatedFAQ) {
+    
+    const faq = await FAQ.findById(req.params.id);
+    if (!faq) {
       return res.status(404).json({ message: "FAQ not found" });
     }
 
-   
-    const redisKey = `faq:${updatedFAQ._id}`;
-    await client.set(redisKey, JSON.stringify(updatedFAQ));
+    if (language === "en") {
+      faq.question = question;
+      faq.answer = answer;
+    } else {
+      const translatedQuestion = await translateText(question, language);
+      const translatedAnswer = await translateText(answer, language);
+      faq.translations.set(language, {
+        question: translatedQuestion,
+        answer: translatedAnswer,
+      });
+    }
 
-    res.json({ message: "FAQ updated with translation", faq: updatedFAQ });
+    await faq.save();
+
+    const redisKey = `faq:${faq._id}`;
+    await client.del(redisKey);
+
+    const keys = await client.keys("faqs:*");
+    if (keys.length) {
+      await client.del(keys);
+    }
+
+    res.json({ message: "FAQ updated successfully", faq });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -104,36 +170,32 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
 
 
 
+
 adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {
   try {
+   
     const deletedFAQ = await FAQ.findByIdAndDelete(req.params.id);
-
     if (!deletedFAQ) {
       return res.status(404).json({ message: "FAQ not found" });
     }
 
+  
     const redisKey = `faq:${deletedFAQ._id}`;
+    await client.del(redisKey);
 
-    client.del(redisKey, (err, response) => {
-      if (err) {
-        console.error("Error deleting from Redis:", err);
-        return res.status(500).json({ message: "Error deleting from Redis" });
-      }
-
-      if (response === 1) {
-        console.log("Deleted FAQ from Redis");
-      } else {
-        console.log("No FAQ found in Redis to delete");
-      }
-    });
+    const keys = await client.keys("faqs:*");
+    if (keys.length) {
+      await client.del(keys);
+    }
 
     res.json({ message: "FAQ deleted successfully" });
   } catch (error) {
-    console.error("Error in deleting FAQ:", error);
+    console.error("Error deleting FAQ:", error);
     res
       .status(500)
       .json({ message: "Error deleting FAQ", error: error.message });
   }
 });
+
 
 module.exports = adminRouter;
