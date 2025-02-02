@@ -16,10 +16,10 @@ const postSchema = new mongoose.Schema(
 );
 
 postSchema.methods.getTranslation = function (lang) {
-  if (this.translations && this.translations[lang]) {
-    return this.translations[lang];
+  if (this.translations && this.translations.has(lang)) {
+    return this.translations.get(lang);
   }
-  return this.question; 
+  return { question: this.question, answer: this.answer };
 };
 
 

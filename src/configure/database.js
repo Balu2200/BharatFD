@@ -11,6 +11,16 @@ const connectDb = async () => {
   }
 };
 
+const disconnectDb = async () => {
+  try {
+    await mongoose.disconnect();
+    console.log("Database disconnected successfully");
+  } catch (err) {
+    console.error("Error in disconnecting", err.message);
+  }
+};
+
 module.exports = {
   connectDb,
+  disconnectDb,
 };

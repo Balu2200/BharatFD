@@ -37,3 +37,5 @@ connectDb()
   .catch((err) => {
     console.error("❌ Database Connection Error:", err.message);
   });
+
+module.exports = app;

@@ -179,8 +179,6 @@ adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {
 
 
 
-
-
 adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {
   try {
    
