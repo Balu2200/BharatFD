@@ -2,15 +2,16 @@
 
 ## Overview
 
--This project is an FAQ Management System built with Express.js, MongoDB, and Redis. It features:
+-The FAQ Management System is a powerful, scalable, and multilingual solution built with Express.js, MongoDB, Redis, and integrated with a WYSIWYG Editor for rich-text formatting. Key features of the system include:
 
-    - CRUD operations for FAQs
-    - WYSIWYG editor for rich-text formatting
-    - Multilingual support
+- CRUD Operations for FAQ management:
+    - Integration of a WYSIWYG editor for easy rich-text content creation
+    - Multilingual support with automatic translation of questions and answers
     - Redis caching for improved performance
-    - Admin panel for managing FAQs
+    - Role-Based Access Control (RBAC) for secure and flexible user management
+    - Admin panel for managing FAQs and translations
 
-## Installation
+## Installation steps
 
 Here's the step-by-step setup for the Express backend with the required libraries and corresponding npm commands:
 
@@ -52,27 +53,41 @@ Create a .env file to store sensitive configurations like DB URL, JWT secret, et
 ## Features
 
 - CRUD Operations for FAQs
-
     - Create: Add new FAQs with questions and answers.
-    - Read: Retrieve a list of all FAQs.
+    - Read  : Retrieve a list of all FAQs.
     - Update: Modify existing FAQs.
     - Delete: Remove FAQs from the system.
 
 
--  WYSIWYG Editor Integration
+- WYSIWYG Editor Integration
 
 Integrating a WYSIWYG (What You See Is What You Get) editor enhances the user experience by allowing users to format FAQ answers with rich text. This integration improves readability and presentation, making the content more engaging and accessible.
 
-- Installation and Integration Steps:
-            
-    -For this implementation, we will use Quill.js, a free, open-source WYSIWYG editor built for the modern web.
-    -If you're using npm, install Quill.js by running
-            - npm install quill
-    -Then, import Quill.js into your JavaScript file:
-            - import Quill from 'quill'
+-How a WYSIWYG Editor Works Internally:
 
-    - Integrate with Backend:
-            - When submitting the form, send the editor's content to your backend (e.g., Express.js) via an API endpoint.   Ensure that your backend is configured to handle HTML content appropriately.
+    - Retrieve content from WYSIWYG Editor:
+        - The content from the WYSIWYG editor is typically sent from the frontend as an HTML string.
+        - The HTML content contains user input (question, answer, etc.) wrapped in HTML tags like <body>, <p>, <strong>, etc.
+
+    - Extract Text Using Cheerio:
+        - The cheerio library is used to load and parse the HTML content on the server.
+        - We extract the plain text from the HTML tags by selecting the <body> tag and calling the .text() method.
+
+    - Translate Using Google Translate API:
+        - The extracted text is sent to Google Translate API using the translate.translate() method.
+        - The target language for translation is provided as an argument.
+
+    - Replace Translated Text in HTML:
+        - After translation, we replace the original text within the <body> tag with the translated content.
+        - The updated HTML content is generated and returned.
+
+    - Store Translated Content:
+        - The translated HTML content is then stored in the database in HTML format.
+        - This allows the content to be properly rendered on the frontend with all necessary HTML tags intact.
+
+
+    - For Our Project we can use QuillJs for the frontend React.
+
 
 - Redis Caching
 
@@ -102,63 +117,61 @@ To enhance application performance, Redis is utilized to cache frequently access
 - Role-Based Access Control (RBAC) Integration
 
     - User Roles Definition:
-
         - The application defines multiple user roles with varying levels of access. Each role (e.g., Admin, User) has specific permissions assigned to it. The roles control who can post, read, update, or delete FAQs through the admin panel and API. Admins have full access, and users can only view FAQs and get FAQs.
 
     - Access Management for API Routes:
-
         - API routes are protected using role-based authentication, ensuring that users can only access the endpoints allowed for their assigned role. For instance, only users with the "Admin" or "User" roles can update or delete FAQ entries, while "User" role users are restricted to read-only access and get-FAQs.
 
     - Authorization Middleware:
-
         - Authorization middleware is implemented to check the user's role before granting access to specific API routes. This middleware verifies the role of the authenticated user and ensures that their permissions align with the requested operation, such as updating or deleting FAQs. This prevents unauthorized actions and enforces secure role-based access control across the application.
 
 
-                -Admin's Capabilities:
+            -Admin's Capabilities:
 
-                    - Post FAQs:
-                        - The admin can add a new FAQ (question and answer) in the desired language. When posting a question, the admin  can specify the language in which they want to add the FAQ.
-                        - The question and answer will be translated into the selected language before saving to the database.
+                - Post FAQs:
+                    - The admin can add a new FAQ (question and answer) in the desired language. When posting a question, the admin  can specify the language in which they want to add the FAQ.
+                    - The question and answer will be translated into the selected language before saving to the database.
 
-                    - Get FAQs:
-                        - The admin can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests.
+                - Get FAQs:
+                    - The admin can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests.
 
-                    - Delete FAQs:
-                       - The admin can delete an FAQ by specifying the FAQ ID. Once deleted, the corresponding cached FAQ (if it exists) will also be removed from Redis.
+                - Delete FAQs:
+                    - The admin can delete an FAQ by specifying the FAQ ID. Once deleted, the corresponding cached FAQ (if it exists) will also be removed from Redis.
 
-                - How it Works:
+            - How it Works:
 
-                    - Post FAQs (POST /faqs):
-                        - Admin posts a question and answer along with the language.
-                        - The question and answer are translated into the specified language.
-                        - The FAQ is saved to the database with the translated content and language.
+                - Post FAQs (POST /faqs):
+                    - Admin posts a question and answer along with the language.
+                    - The question and answer are translated into the specified language.
+                    - The FAQ is saved to the database with the translated content and language.
 
-                    - Get FAQs (GET /faqs):
-                       - Admin or users can view the FAQs in the language of their choice.
-                       - The system checks Redis for cached FAQs for the selected language. If not found, it fetches the FAQs from the database and translates them.
+                - Get FAQs (GET /faqs):
+                    - Admin or users can view the FAQs in the language of their choice.
+                    - The system checks Redis for cached FAQs for the selected language. If not found, it fetches the FAQs from the database and translates them.
 
-                    - Delete FAQs (DELETE /faqs/:id):
-                        - Admin deletes an FAQ by ID.
-                        - The FAQ is removed from the database and its corresponding cache in Redis is deleted.
+                - Delete FAQs (DELETE /faqs/:id):
+                    - Admin deletes an FAQ by ID.
+                    - The FAQ is removed from the database and its corresponding cache in Redis is deleted.
 
-                - User's Capabilities :
-
-                    - Get FAQs:
-                        - The user can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests.
-                     
-
-                - AdminRoutes
-                    - adminRouter.post("/faqs", adminMiddleware, async (req, res) => {})
-                    - adminRouter.get("/faqs", redisMiddleware, async (req, res) => {})
-                    - adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {})
-                    - adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {})
-                - UserRoutes
-                    - userRouter.get("/faqs", cacheMiddleware, async (req, res) => {})
+                - Update FAQs (PUT /faqs/:id)"
+                    - Admin can update the question and answers .
+                    - This updation of content will reflect to change all the translations.
 
 
-                 - http://localhost:1234/admin/faqs
-                 - http://localhost:1234/admin/faqs?lang=hi
-                 - http://localhost:1234/user/faqs?lang=hi
+            - User's Capabilities :
+
+                - Get FAQs:
+                    - The user can retrieve all FAQs in a specific language. If the FAQs for that language are cached in Redis, the data will be served from the cache. If not, the FAQs will be translated and then cached for subsequent requests. User can only get question and answers , he is not allowed to post question and answers.
+                    
+
+            - AdminRoutes
+                - adminRouter.post("/faqs", adminMiddleware, async (req, res) => {})
+                - adminRouter.get("/faqs",   redisMiddleware, async (req, res) => {})
+                - adminRouter.put("/faqs/:id", adminMiddleware, async (req, res) => {})
+                - adminRouter.delete("/faqs/:id", adminMiddleware, async (req, res) => {})
+
+            - UserRoutes
+                - userRouter.get("/faqs", cacheMiddleware, async (req, res) => {})
 
 - Multilingual Support
 
@@ -183,7 +196,6 @@ Here are the steps for unit testing using Jest, including libraries and a small 
 
 
   - Install Jest, Supertest, Mongoose, and Mockingoose: Install dependencies for testing:
-
       - npm install --save-dev jest supertest mongoose mockingoose
 
   - Set up Jest configuration: Add a script in package.json to run tests:
@@ -191,6 +203,7 @@ Here are the steps for unit testing using Jest, including libraries and a small 
         "scripts":  {
                     "test": "jest"
                     }
+
   - Write Model Tests: Create a test file faqModel.test.js and test the model methods:
      
         - Example :
@@ -219,12 +232,13 @@ Here are the steps for unit testing using Jest, including libraries and a small 
                         expect(res.status).toBe(201);
                     });
                 });
+
     - Mock Mongoose Models: Use mockingoose to mock Mongoose methods:
 
         - const mockingoose = require("mockingoose");
             mockingoose(FAQ).toReturn({ question: "What is Node?" }, "findOne");   
-    - Run Tests: Run the tests using the command:
 
+    - Run Tests: Run the tests using the command:
         - npm run test
 
 These steps summarize how to set up and perform unit testing with Jest in the project, using mock data for models and testing your API endpoints with Supertest. 
