@@ -17,9 +17,27 @@ Here's the step-by-step setup for the Express backend with the required librarie
 
         - npm i
 
-        Packages Used:
+        Dependencies:
 
-             - 
+             - @google-cloud/translate → Google Cloud Translation API client for language translation.
+             - bcrypt → Library for hashing passwords securely.
+             - cheerio → Fast and flexible HTML parsing and manipulation tool for Node.js.
+             - cookie-parser → Middleware for parsing cookies in Express.
+             - cors → Middleware to enable Cross-Origin Resource Sharing (CORS).
+             - dotenv → Loads environment variables from a .env file into process.env.
+             - express → Fast and minimalist web framework for Node.js.
+             - ioredis → A robust Redis client for handling caching and real-time data.
+             - jsonwebtoken → Implements JSON Web Tokens (JWT) for authentication and authorization.
+             - redis → Official Redis client for interacting with a Redis database.
+             - validator → Library for validating and sanitizing user input.
+
+        DevDependencies:
+            - jest → A JavaScript testing framework for unit and integration tests.
+            - mockingoose → Library for mocking Mongoose models in Jest tests.
+            - mongodb-memory-server → In-memory MongoDB server for fast testing.
+            - mongoose → ODM (Object-Document Mapping) library for MongoDB and Node.js.
+            - redis-mock → A mock Redis client for testing Redis interactions.
+            - supertest → HTTP assertion library for testing Express applications.
 
 Create a .env file to store sensitive configurations like DB URL, JWT secret, etc
 
