@@ -15,38 +15,11 @@
 
 Here's the step-by-step setup for the Express backend with the required libraries and corresponding npm commands:
 
-    -Initialize a new Node.js project
-        - npm init 
+        - npm i
 
-    -Install Express for creating the server
-        - npm install express
+        Packages Used:
 
-    -Install Mongoose for MongoDB integration
-        - npm install mongoose
-
-    - Install CORS to enable cross-origin requests
-        - npm install cors
-    
-    - Install cookie-parser for cookies parsing 
-        - npm install cookie-parser
-
-    -Install googletrans library for multilingual support
-        - npm install @google-cloud/translate
-
-    -Install Redis and ioredis for caching FAQs
-        - npm install redis ioredis
-
-    -Install dotenv for managing environment variables
-        - npm install dotenv
-
-    -Install bcrypt for bcryption of the passwords
-        - npm install passport bcryptjs
-
-    -Install JSON Web Token (JWT) for handling user authentication and authorization
-        - npm install jsonwebtoken
-
-    -Install jest or mocha for unit testing
-        - npm install jest 
+             - 
 
 Create a .env file to store sensitive configurations like DB URL, JWT secret, etc
 
